@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treino de Cifras</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #fff;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      gap: 32px;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #888;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Placar */
+    .score {
+      display: flex;
+      gap: 24px;
+    }
+    .score-item {
+      text-align: center;
+    }
+    .score-item span:first-child {
+      display: block;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .score-item span:last-child {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .acertos span:first-child { color: #4ade80; }
+    .erros   span:first-child { color: #f87171; }
+
+    /* Card da pergunta */
+    .card {
+      background: #1a1a2e;
+      border: 2px solid #2a2a45;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 340px;
+      padding: 40px 24px;
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .card.acerto {
+      background: #052e16;
+      border-color: #4ade80;
+    }
+    .card.erro {
+      background: #2d0a0a;
+      border-color: #f87171;
+    }
+
+    .pergunta-label {
+      font-size: 0.8rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .nota-display {
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #e0e0ff;
+    }
+
+    .feedback-msg {
+      font-size: 1rem;
+      font-weight: 600;
+      min-height: 1.4em;
+    }
+    .feedback-msg.acerto { color: #4ade80; }
+    .feedback-msg.erro   { color: #f87171; }
+
+    /* Botões das notas */
+    .botoes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 340px;
+    }
+    /* último botão (7º) fica sozinho — centraliza */
+    .botoes button:last-child:nth-child(4n+1) {
+      grid-column: 2 / span 2;
+    }
+
+    .botoes button {
+      background: #1e1e35;
+      color: #c0c0e0;
+      border: 2px solid #2a2a50;
+      border-radius: 14px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      padding: 18px 0;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.08s, border-color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .botoes button:active {
+      transform: scale(0.93);
+    }
+    .botoes button:hover {
+      background: #28285a;
+      border-color: #5050aa;
+    }
+    .botoes button.certa {
+      background: #052e16;
+      border-color: #4ade80;
+      color: #4ade80;
+    }
+    .botoes button.errada {
+      background: #2d0a0a;
+      border-color: #f87171;
+      color: #f87171;
+    }
+    .botoes button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .botoes button:disabled:not(.certa):not(.errada) {
+      opacity: 0.3;
+    }
+
+    .btn-proximo {
+      background: #3b3bcc;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 16px 40px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s;
+      -webkit-tap-highlight-color: transparent;
+      display: none;
+    }
+    .btn-proximo.visivel { display: block; }
+    .btn-proximo:active { transform: scale(0.95); }
+    .btn-proximo:hover  { background: #4a4ae0; }
+  </style>
+</head>
+<body>
+
+  <h1>Treino de Cifras</h1>
+
+  <div class="score">
+    <div class="score-item acertos">
+      <span id="qtd-acertos">0</span>
+      <span>Acertos</span>
+    </div>
+    <div class="score-item erros">
+      <span id="qtd-erros">0</span>
+      <span>Erros</span>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <span class="pergunta-label">Qual é esta nota?</span>
+    <div class="nota-display" id="nota-display">—</div>
+    <div class="feedback-msg" id="feedback"></div>
+  </div>
+
+  <div class="botoes" id="botoes">
+    <button onclick="responder('C')">C</button>
+    <button onclick="responder('D')">D</button>
+    <button onclick="responder('E')">E</button>
+    <button onclick="responder('F')">F</button>
+    <button onclick="responder('G')">G</button>
+    <button onclick="responder('A')">A</button>
+    <button onclick="responder('B')">B</button>
+  </div>
+
+  <button class="btn-proximo" id="btn-proximo" onclick="proxima()">Próxima →</button>
+
+  <script>
+    const notas = [
+      { cifra: 'C', nome: 'Dó' },
+      { cifra: 'D', nome: 'Ré' },
+      { cifra: 'E', nome: 'Mi' },
+      { cifra: 'F', nome: 'Fá' },
+      { cifra: 'G', nome: 'Sol' },
+      { cifra: 'A', nome: 'Lá' },
+      { cifra: 'B', nome: 'Si' },
+    ];
+
+    let notaAtual = null;
+    let acertos = 0;
+    let erros = 0;
+
+    function proximaNota() {
+      // evita repetir a mesma nota duas vezes seguidas
+      let candidatas = notaAtual
+        ? notas.filter(n => n.cifra !== notaAtual.cifra)
+        : notas;
+      return candidatas[Math.floor(Math.random() * candidatas.length)];
+    }
+
+    function proxima() {
+      notaAtual = proximaNota();
+
+      document.getElementById('nota-display').textContent = notaAtual.nome;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback-msg';
+      document.getElementById('card').className = 'card';
+
+      const btns = document.querySelectorAll('#botoes button');
+      btns.forEach(b => {
+        b.disabled = false;
+        b.className = '';
+      });
+
+      document.getElementById('btn-proximo').classList.remove('visivel');
+    }
+
+    function responder(cifra) {
+      if (!notaAtual) return;
+
+      const btns = document.querySelectorAll('#botoes button');
+      btns.forEach(b => b.disabled = true);
+
+      const acertou = cifra === notaAtual.cifra;
+      const feedback = document.getElementById('feedback');
+      const card = document.getElementById('card');
+
+      // destaca botão clicado
+      btns.forEach(b => {
+        if (b.textContent === cifra) {
+          b.classList.add(acertou ? 'certa' : 'errada');
+        }
+        if (!acertou && b.textContent === notaAtual.cifra) {
+          b.classList.add('certa'); // mostra a resposta certa
+        }
+      });
+
+      if (acertou) {
+        acertos++;
+        feedback.textContent = 'Certo! ✓';
+        feedback.className = 'feedback-msg acerto';
+        card.className = 'card acerto';
+        document.getElementById('qtd-acertos').textContent = acertos;
+      } else {
+        erros++;
+        feedback.textContent = `Errou — era ${notaAtual.cifra}`;
+        feedback.className = 'feedback-msg erro';
+        card.className = 'card erro';
+        document.getElementById('qtd-erros').textContent = erros;
+      }
+
+      document.getElementById('btn-proximo').classList.add('visivel');
+    }
+
+    // inicia
+    proxima();
+  </script>
+</body>
+</html>
